@@ -1,4 +1,4 @@
-# 🎙️ Voice Scheduling Agent — Vikara.ai Assessment
+# 🎙️ Voice Scheduling Agent
 
 A real-time voice assistant that schedules calendar events through natural conversation. Built with a focus on **production-grade architecture**, **intelligent conflict detection**, and a **warm, human-like conversational experience**.
 
@@ -53,8 +53,8 @@ The system is designed as a **decoupled, tool-augmented voice pipeline**:
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/vikara-voice-agent.git
-cd vikara-voice-agent
+git clone https://github.com/YOUR_USERNAME/voice-agent.git
+cd voice-agent
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -154,8 +154,8 @@ Set environment variables in Railway dashboard, then update `GOOGLE_REDIRECT_URI
 ### Docker
 
 ```bash
-docker build -t vikara-voice-agent .
-docker run -p 8000:8000 --env-file .env vikara-voice-agent
+docker build -t voice-agent .
+docker run -p 8000:8000 --env-file .env voice-agent
 ```
 
 ---
@@ -176,7 +176,7 @@ docker run -p 8000:8000 --env-file .env vikara-voice-agent
 ## 🗂️ Project Structure
 
 ```
-vikara-voice-agent/
+voice-agent/
 ├── app/
 │   ├── __init__.py
 │   ├── server.py              # FastAPI — routes, VAPI tool handlers
