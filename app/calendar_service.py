@@ -48,6 +48,10 @@ class GoogleCalendarService:
 
     def _load_credentials(self):
         """Load stored credentials if they exist and are valid."""
+        token_json = os.getenv("GOOGLE_TOKEN_JSON")
+        if token_json:
+            self.creds = Credentials.from_authorized_user_info(json.loads(token_json), SCOPES)
+            
         if TOKEN_PATH.exists():
             self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
 
