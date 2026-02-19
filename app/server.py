@@ -454,7 +454,7 @@ async def landing_page():
     let isCallActive = false;
     
     if (publicKey && publicKey !== "") {{
-        vapi = new Vapi(publicKey);
+        vapi = new Vapi.default(publicKey);
         
         vapi.on("call-start", () => {{
             isCallActive = true;
