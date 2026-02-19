@@ -78,7 +78,30 @@ async def landing_page():
             }}
             .call-btn:hover {{ transform: translateY(-2px); box-shadow: 0 0 60px rgba(124, 58, 237, 0.5); }}
             .call-btn:active {{ transform: translateY(0); }}
+            .call-btn {{ position: relative; }}
             .call-btn .icon {{ font-size: 1.3rem; }}
+            .call-btn.active::before {{
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 60px;
+                border: 2px solid rgba(220, 38, 38, 0.4);
+                animation: ripple 1.5s ease-out infinite;
+            }}
+            .call-btn.active::after {{
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 60px;
+                border: 2px solid rgba(220, 38, 38, 0.3);
+                animation: ripple 1.5s ease-out infinite 0.5s;
+            }}
+            @keyframes ripple {{
+                0% {{ transform: scale(1); opacity: 1; }}
+                100% {{ transform: scale(1.5); opacity: 0; }}
+            }}
             .call-btn.active {{
                 background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
                 box-shadow: 0 0 40px rgba(220, 38, 38, 0.3);
@@ -166,6 +189,23 @@ async def landing_page():
                     <p>Creates real Google Calendar events with one conversation — no forms, no clicks</p>
                 </div>
             </div>
+            <div class="features" style="margin-top: 0;">
+                <div class="feature" style="text-align: center;">
+                    <div class="icon">👆</div>
+                    <h3>1. Click</h3>
+                    <p>Hit "Talk to Aria" and allow microphone access</p>
+                </div>
+                <div class="feature" style="text-align: center;">
+                    <div class="icon">🗣️</div>
+                    <h3>2. Speak</h3>
+                    <p>Tell Aria your name, preferred date, time, and meeting title</p>
+                </div>
+                <div class="feature" style="text-align: center;">
+                    <div class="icon">✅</div>
+                    <h3>3. Booked</h3>
+                    <p>Aria confirms details and creates the event on your Google Calendar</p>
+                </div>
+            </div>
             <div class="bookings-section">
                 <h2>📋 Recent Bookings</h2>
                 <div id="bookingsList" class="booking-list">
@@ -237,6 +277,9 @@ async def landing_page():
                 }}
             }};
 
+            const dingSound = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1tZWF1dnV0eH16f4GAgYKDg4SEhYWGh4eIiImJiouMjI2Oj5CRkZKTlJWVlpeYmJmam5ydnZ6foKChoqOkpaanp6mqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/v/+/f38+/r5+Pf29fTz8vHw7+7t7Ovq6ejn5uXk4+Lh4N/e3dzb2tnY19bV1NPS0dDPzs3My8rJyMfGxcTDwsHAv769vLu6ubm4t7a1tLOysbCvrq2sq6qpqKempaSjoqGgn56dnJuamZiXlpWUk5KRkI+OjYyLiomIh4aFhIOCgYB/fn18e3p5eHd2dXRzcnFwb25tbGtqaWhnZmVkY2JhYF9eXVxbWllYV1ZVVFNSUVBPTk1MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAA==");
+            let previousBookingCount = 0;
+
             async function loadBookings() {{
                 try {{
                     const res = await fetch("/api/bookings");
@@ -250,6 +293,10 @@ async def landing_page():
                                 <span class="time">${{b.scheduled_date}} at ${{b.scheduled_time}}</span>
                             </div>
                         `).join("");
+                        if (previousBookingCount > 0 && data.bookings.length > previousBookingCount) {{
+                            dingSound.play().catch(() => {{}});
+                        }}
+                        previousBookingCount = data.bookings.length;
                     }}
                 }} catch(e) {{
                     console.error("Failed to load bookings:", e);
