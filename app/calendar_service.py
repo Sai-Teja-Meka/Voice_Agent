@@ -48,10 +48,6 @@ class GoogleCalendarService:
 
     def _load_credentials(self):
         """Load stored credentials if they exist and are valid."""
-        token_json = os.getenv("GOOGLE_TOKEN_JSON")
-        if token_json:
-            self.creds = Credentials.from_authorized_user_info(json.loads(token_json), SCOPES)
-            
         if TOKEN_PATH.exists():
             self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
 
@@ -69,14 +65,6 @@ class GoogleCalendarService:
 
     @property
     def is_authenticated(self) -> bool:
-        if self.creds and self.creds.expired and self.creds.refresh_token:
-            try:
-                self.creds.refresh(Request())
-                self._save_credentials()
-                self.service = build("calendar", "v3", credentials=self.creds)
-            except Exception as e:
-                print(f"[CalendarService] Token refresh failed: {e}")
-                return False
         return self.creds is not None and self.creds.valid
 
     def get_auth_url(self) -> str:

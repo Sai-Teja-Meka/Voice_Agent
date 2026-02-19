@@ -113,7 +113,7 @@ ASSISTANT_CONFIG = {
     # ── Brain: Claude Opus 4.6 ──
     "model": {
         "provider": "anthropic",
-        "model": "claude-sonnet-4-5-20250929",
+        "model": "claude-opus-4-6",
         "messages": [
             {
                 "role": "system",
@@ -158,7 +158,7 @@ ASSISTANT_CONFIG = {
                     }
                 },
                 "server": {
-                    "url": f"{SERVER_URL}/api/tool/schedule-event"
+                    "url": f"{SERVER_URL}/tools/api/v1/schedule-event"
                 }
             },
             {
@@ -186,7 +186,7 @@ ASSISTANT_CONFIG = {
                     }
                 },
                 "server": {
-                    "url": f"{SERVER_URL}/api/tool/check-availability"
+                    "url": f"{SERVER_URL}/tools/api/v1/check-availability"
                 }
             },
             {
@@ -210,7 +210,7 @@ ASSISTANT_CONFIG = {
                     }
                 },
                 "server": {
-                    "url": f"{SERVER_URL}/api/tool/available-slots"
+                    "url": f"{SERVER_URL}/tools/api/v1/available-slots"
                 }
             }
         ]
@@ -227,12 +227,11 @@ ASSISTANT_CONFIG = {
     },
 
     # ── Transcriber: Scribe v1 ──
-        # ── Transcriber ──
     "transcriber": {
-  "provider": "11labs",
-  "model": "scribe_v1",
-  "language": "en",
-},
+        "provider": "talkscribe",
+        "model": "scribe-v1",
+        "language": "en",
+    },
 
     # ── Call Settings ──
     "firstMessageMode": "assistant-speaks-first",
