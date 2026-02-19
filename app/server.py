@@ -439,78 +439,79 @@ async def landing_page():
         </div>
         
         <!-- VAPI Web SDK -->
-        <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.js"></script>
-        <script>
-            let vapi = null;
-            let isCallActive = false;
-            
-            // Initialize VAPI
-            const publicKey = "{vapi_public_key}";
-            const assistantId = "{assistant_id}";
-            
-            if (publicKey && publicKey !== "") {{
-                vapi = new window.Vapi(publicKey);
-                
-                vapi.on("call-start", () => {{
-                    isCallActive = true;
-                    document.getElementById("callBtn").classList.add("active");
-                    document.getElementById("btnText").textContent = "End Call";
-                    document.getElementById("callStatus").textContent = "Connected — speak naturally";
-                }});
-                
-                vapi.on("call-end", () => {{
-                    isCallActive = false;
-                    document.getElementById("callBtn").classList.remove("active");
-                    document.getElementById("btnText").textContent = "Talk to Aria";
-                    document.getElementById("callStatus").textContent = "Call ended";
-                    loadBookings();
-                }});
-                
-                vapi.on("error", (e) => {{
-                    console.error("VAPI Error:", e);
-                    document.getElementById("callStatus").textContent = "Connection error — please try again";
-                }});
-            }}
-            
-            function toggleCall() {{
-                if (!publicKey || publicKey === "") {{
-                    document.getElementById("callStatus").textContent = "Voice widget not configured — test via VAPI Dashboard";
-                    return;
-                }}
-                
-                if (isCallActive) {{
-                    vapi.stop();
-                }} else {{
-                    document.getElementById("callStatus").textContent = "Connecting...";
-                    vapi.start(assistantId);
-                }}
-            }}
-            
-            // Load recent bookings
-            async function loadBookings() {{
-                try {{
-                    const res = await fetch("/api/bookings");
-                    const data = await res.json();
-                    const list = document.getElementById("bookingsList");
-                    
-                    if (data.bookings && data.bookings.length > 0) {{
-                        list.innerHTML = data.bookings.map(b => `
-                            <div class="booking-item">
-                                <span class="name">${{b.caller_name}}</span>
-                                <span class="title">${{b.meeting_title || 'Meeting'}}</span>
-                                <span class="time">${{b.scheduled_date}} at ${{b.scheduled_time}}</span>
-                            </div>
-                        `).join("");
-                    }}
-                }} catch(e) {{
-                    console.error("Failed to load bookings:", e);
-                }}
-            }}
-            
+        <script type="module">
+            import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm";
+            window.Vapi = Vapi;
+            window.vapiReady = true;
+            window.dispatchEvent(new Event('vapiLoaded'));
+       </script>
+        <script type="module">
+    import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm";
+    
+    const publicKey = "{vapi_public_key}";
+    const assistantId = "{assistant_id}";
+    let vapi = null;
+    let isCallActive = false;
+    
+    if (publicKey && publicKey !== "") {{
+        vapi = new Vapi(publicKey);
+        
+        vapi.on("call-start", () => {{
+            isCallActive = true;
+            document.getElementById("callBtn").classList.add("active");
+            document.getElementById("btnText").textContent = "End Call";
+            document.getElementById("callStatus").textContent = "Connected — speak naturally";
+        }});
+        
+        vapi.on("call-end", () => {{
+            isCallActive = false;
+            document.getElementById("callBtn").classList.remove("active");
+            document.getElementById("btnText").textContent = "Talk to Aria";
+            document.getElementById("callStatus").textContent = "Call ended";
             loadBookings();
-            // Refresh bookings every 15s
-            setInterval(loadBookings, 15000);
-        </script>
+        }});
+        
+        vapi.on("error", (e) => {{
+            console.error("VAPI Error:", e);
+            document.getElementById("callStatus").textContent = "Connection error — please try again";
+        }});
+    }}
+    
+    window.toggleCall = function() {{
+        if (!vapi) {{
+            document.getElementById("callStatus").textContent = "Voice widget not configured — test via VAPI Dashboard";
+            return;
+        }}
+        if (isCallActive) {{
+            vapi.stop();
+        }} else {{
+            document.getElementById("callStatus").textContent = "Connecting...";
+            vapi.start(assistantId);
+        }}
+    }};
+    
+    async function loadBookings() {{
+        try {{
+            const res = await fetch("/api/bookings");
+            const data = await res.json();
+            const list = document.getElementById("bookingsList");
+            if (data.bookings && data.bookings.length > 0) {{
+                list.innerHTML = data.bookings.map(b => `
+                    <div class="booking-item">
+                        <span class="name">${{b.caller_name}}</span>
+                        <span class="title">${{b.meeting_title || 'Meeting'}}</span>
+                        <span class="time">${{b.scheduled_date}} at ${{b.scheduled_time}}</span>
+                    </div>
+                `).join("");
+            }}
+        }} catch(e) {{
+            console.error("Failed to load bookings:", e);
+        }}
+    }}
+    
+    loadBookings();
+    setInterval(loadBookings, 15000);
+</script>
     </body>
     </html>
     """)
