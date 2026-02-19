@@ -78,29 +78,31 @@ async def landing_page():
             }}
             .call-btn:hover {{ transform: translateY(-2px); box-shadow: 0 0 60px rgba(124, 58, 237, 0.5); }}
             .call-btn:active {{ transform: translateY(0); }}
-            .call-btn {{ position: relative; }}
+            .call-section {{ position: relative; }}
+            .call-btn {{ position: relative; overflow: visible; }}
             .call-btn .icon {{ font-size: 1.3rem; }}
-            .call-btn.active::before {{
+            .call-btn.active::before,
+            .call-btn.active::after {{
                 content: '';
                 position: absolute;
+                top: 0;
+                left: 0;
                 width: 100%;
                 height: 100%;
                 border-radius: 60px;
                 border: 2px solid rgba(220, 38, 38, 0.4);
+                pointer-events: none;
+            }}
+            .call-btn.active::before {{
                 animation: ripple 1.5s ease-out infinite;
             }}
             .call-btn.active::after {{
-                content: '';
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                border-radius: 60px;
-                border: 2px solid rgba(220, 38, 38, 0.3);
+                border-color: rgba(220, 38, 38, 0.3);
                 animation: ripple 1.5s ease-out infinite 0.5s;
             }}
             @keyframes ripple {{
                 0% {{ transform: scale(1); opacity: 1; }}
-                100% {{ transform: scale(1.5); opacity: 0; }}
+                100% {{ transform: scale(1.6); opacity: 0; }}
             }}
             .call-btn.active {{
                 background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
