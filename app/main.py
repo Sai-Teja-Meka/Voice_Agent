@@ -21,6 +21,7 @@ Architecture:
 
 import os
 from contextlib import asynccontextmanager
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,21 +92,21 @@ async def direct_schedule(req: DirectScheduleRequest):
     except ValueError as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
-    conflicts = calendar_service.check_conflicts(start_time, end_time)
+    conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
     if conflicts:
         return JSONResponse(content={
             "status": "conflict",
             "conflicts": [{"summary": e.get("summary"), "start": e.get("start")} for e in conflicts],
         })
 
-    event = calendar_service.create_event(
+    event = await asyncio.to_thread(calendar_service.create_event,
         summary=req.title or f"Meeting with {req.name}",
         start_time=start_time,
         end_time=end_time,
         attendee_name=req.name,
     )
 
-    log_booking(
+    await asyncio.to_thread(log_booking,
         caller_name=req.name,
         meeting_title=req.title or f"Meeting with {req.name}",
         scheduled_date=start_time.strftime("%Y-%m-%d"),
