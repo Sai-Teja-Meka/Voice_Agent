@@ -113,7 +113,7 @@ ASSISTANT_CONFIG = {
     # ── Brain: Claude Opus 4.6 ──
     "model": {
         "provider": "anthropic",
-        "model": "claude-opus-4-6",
+        "model": "claude-sonnet-4-5-20250929",
         "messages": [
             {
                 "role": "system",
