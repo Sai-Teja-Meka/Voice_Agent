@@ -279,8 +279,6 @@ async def landing_page():
                 }}
             }};
 
-            let previousBookingCount = 0;
-
             async function loadBookings() {{
                 try {{
                     const res = await fetch("/api/bookings");
@@ -294,10 +292,6 @@ async def landing_page():
                                 <span class="time">${{b.scheduled_date}} at ${{b.scheduled_time}}</span>
                             </div>
                         `).join("");
-                        if (previousBookingCount > 0 && data.bookings.length > previousBookingCount) {{
-                            dingSound.play().catch(() => {{}});
-                        }}
-                        previousBookingCount = data.bookings.length;
                     }}
                 }} catch(e) {{
                     console.error("Failed to load bookings:", e);
