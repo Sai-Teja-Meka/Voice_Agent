@@ -69,6 +69,14 @@ class GoogleCalendarService:
 
     @property
     def is_authenticated(self) -> bool:
+        if self.creds and self.creds.expired and self.creds.refresh_token:
+            try:
+                self.creds.refresh(Request())
+                self._save_credentials()
+                self.service = build("calendar", "v3", credentials=self.creds)
+            except Exception as e:
+                print(f"[CalendarService] Token refresh failed: {e}")
+                return False
         return self.creds is not None and self.creds.valid
 
     def get_auth_url(self) -> str:
