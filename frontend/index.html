@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aria — Voice Scheduling Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #020208;
+            --bg-deep: #06060f;
+            --surface-1: rgba(255, 255, 255, 0.02);
+            --surface-2: rgba(255, 255, 255, 0.04);
+            --surface-3: rgba(255, 255, 255, 0.06);
+            --border-dim: rgba(255, 255, 255, 0.05);
+            --border-glow: rgba(139, 92, 246, 0.3);
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888aa;
+            --text-dim: #555577;
+            --accent-violet: #8b5cf6;
+            --accent-indigo: #6366f1;
+            --accent-cyan: #22d3ee;
+            --accent-emerald: #34d399;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --glow-violet: rgba(139, 92, 246, 0.15);
+            --glow-cyan: rgba(34, 211, 238, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Three.js Canvas ─── */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─── Main Container ─── */
+        .main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── Hero Section ─── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 24px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-dim);
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 32px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(3rem, 8vw, 6.5rem);
+            font-weight: 800;
+            line-height: 0.95;
+            letter-spacing: -3px;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease-out 0.1s both;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-cyan) 50%, var(--accent-emerald) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 .thin {
+            font-weight: 200;
+            color: var(--text-secondary);
+            -webkit-text-fill-color: var(--text-secondary);
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 480px;
+            line-height: 1.7;
+            margin-bottom: 48px;
+            font-weight: 300;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        /* ─── Call Button (Orb) ─── */
+        .orb-wrapper {
+            position: relative;
+            width: 180px; height: 180px;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .orb {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--accent-violet), var(--accent-indigo), #1e1b4b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 60px var(--glow-violet), 0 0 120px rgba(139, 92, 246, 0.08);
+            position: relative;
+            z-index: 2;
+        }
+
+        .orb:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 80px var(--glow-violet), 0 0 160px rgba(139, 92, 246, 0.15);
+        }
+
+        .orb.active {
+            background: radial-gradient(circle at 35% 35%, var(--accent-rose), #991b1b, #450a0a);
+            box-shadow: 0 0 60px rgba(244, 63, 94, 0.3), 0 0 120px rgba(244, 63, 94, 0.1);
+            animation: orbPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .orb-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            pointer-events: none;
+        }
+
+        .orb-ring-1 { width: 220px; height: 220px; animation: ringPulse 3s ease-out infinite; }
+        .orb-ring-2 { width: 260px; height: 260px; animation: ringPulse 3s ease-out infinite 0.5s; }
+        .orb-ring-3 { width: 300px; height: 300px; animation: ringPulse 3s ease-out infinite 1s; }
+
+        .orb.active ~ .orb-ring { border-color: rgba(244, 63, 94, 0.2); }
+
+        @keyframes ringPulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+        }
+
+        .orb-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: white;
+            font-weight: 500;
+        }
+
+        .call-status-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            min-height: 24px;
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        /* ─── Section Styles ─── */
+        section {
+            padding: 120px 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            margin-bottom: 48px;
+            line-height: 1.1;
+        }
+
+        /* ─── Capabilities ─── */
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .capability-card {
+            padding: 32px 28px;
+            background: var(--surface-1);
+            border: 1px solid var(--border-dim);
+            border-radius: 20px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .capability-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-violet), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .capability-card:hover {
+            border-color: var(--border-glow);
+            background: var(--surface-2);
+            transform: translateY(-4px);
+        }
+
+        .capability-card:hover::before { opacity: 1; }
+
+        .cap-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .cap-icon.violet { background: rgba(139, 92, 246, 0.12); }
+        .cap-icon.cyan { background: rgba(34, 211, 238, 0.12); }
+        .cap-icon.emerald { background: rgba(52, 211, 153, 0.12); }
+        .cap-icon.amber { background: rgba(245, 158, 11, 0.12); }
+        .cap-icon.rose { background: rgba(244, 63, 94, 0.12); }
+        .cap-icon.indigo { background: rgba(99, 102, 241, 0.12); }
+
+        .capability-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .capability-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* ─── Architecture ─── */
+        .arch-container {
+            position: relative;
+            padding: 48px;
+            background: var(--surface-1);
+            border: 1px solid var(--border-dim);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .arch-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(34, 211, 238, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .arch-node {
+            padding: 20px 24px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-dim);
+            border-radius: 16px;
+            text-align: center;
+            min-width: 140px;
+            transition: all 0.3s;
+            animation: nodeAppear 0.6s ease-out both;
+        }
+
+        .arch-node:nth-child(1) { animation-delay: 0.1s; }
+        .arch-node:nth-child(2) { animation-delay: 0.2s; }
+        .arch-node:nth-child(3) { animation-delay: 0.3s; }
+        .arch-node:nth-child(4) { animation-delay: 0.4s; }
+        .arch-node:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes nodeAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .arch-node:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .arch-node .node-icon { font-size: 1.5rem; margin-bottom: 8px; }
+        .arch-node .node-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .arch-node .node-tech {
+            font-size: 0.75rem;
+            color: var(--accent-violet);
+            font-weight: 500;
+        }
+
+        .arch-arrow {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            animation: arrowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; color: var(--accent-cyan); }
+        }
+
+        .arch-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .arch-detail {
+            padding: 16px 20px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .arch-detail .detail-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .arch-detail .detail-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ─── Transcript Feed ─── */
+        .transcript-container {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        .transcript-feed {
+            background: var(--surface-1);
+            border: 1px solid var(--border-dim);
+            border-radius: 20px;
+            padding: 32px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .transcript-feed::-webkit-scrollbar { width: 4px; }
+        .transcript-feed::-webkit-scrollbar-track { background: transparent; }
+        .transcript-feed::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 4px; }
+
+        .transcript-msg {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            animation: msgSlide 0.4s ease-out;
+        }
+
+        @keyframes msgSlide {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .msg-avatar {
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .msg-avatar.aria { background: rgba(139, 92, 246, 0.15); }
+        .msg-avatar.user { background: rgba(34, 211, 238, 0.15); }
+
+        .msg-content { flex: 1; }
+
+        .msg-sender {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .msg-sender.aria-name { color: var(--accent-violet); }
+        .msg-sender.user-name { color: var(--accent-cyan); }
+
+        .msg-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .msg-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent-emerald);
+            margin-top: 8px;
+        }
+
+        /* ─── Bookings Sidebar ─── */
+        .bookings-sidebar {
+            background: var(--surface-1);
+            border: 1px solid var(--border-dim);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .bookings-sidebar h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .booking-entry {
+            padding: 14px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .booking-entry:hover { border-color: var(--border-glow); }
+
+        .booking-entry .b-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .booking-entry .b-title {
+            font-size: 0.75rem;
+            color: var(--accent-violet);
+            margin-bottom: 4px;
+        }
+
+        .booking-entry .b-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+        }
+
+        .empty-bookings {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        /* ─── How It Works ─── */
+        .steps-row {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            margin-top: 48px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            max-width: 240px;
+        }
+
+        .step-number {
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-violet);
+        }
+
+        .step h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .step p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* ─── Footer ─── */
+        footer {
+            text-align: center;
+            padding: 60px 24px;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        footer p {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover { color: var(--accent-violet); }
+
+        /* ─── Animations ─── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 768px) {
+            .capabilities-grid { grid-template-columns: 1fr; }
+            .arch-flow { flex-direction: column; }
+            .arch-arrow { transform: rotate(90deg); }
+            .arch-details { grid-template-columns: 1fr; }
+            .transcript-container { grid-template-columns: 1fr; }
+            .steps-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="main">
+        <!-- ═══ HERO ═══ -->
+        <section class="hero">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                <span>Voice Intelligence Online</span>
+            </div>
+            <h1>
+                <span class="thin">Meet</span><br>
+                <span class="gradient-text">Aria</span>
+            </h1>
+            <p class="hero-sub">
+                Your AI scheduling assistant that listens, understands, and books — 
+                all through natural voice conversation.
+            </p>
+            <div class="orb-wrapper">
+                <div class="orb" id="callOrb" onclick="toggleCall()">
+                    <span class="orb-label" id="orbLabel">SPEAK</span>
+                </div>
+                <div class="orb-ring orb-ring-1"></div>
+                <div class="orb-ring orb-ring-2"></div>
+                <div class="orb-ring orb-ring-3"></div>
+            </div>
+            <div class="call-status-text" id="callStatus">Click the orb to start a conversation</div>
+        </section>
+
+        <!-- ═══ HOW IT WORKS ═══ -->
+        <section class="reveal">
+            <div class="section-label">Process</div>
+            <div class="section-title">Three steps. Zero friction.</div>
+            <div class="steps-row">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Speak</h4>
+                    <p>Click the orb and talk naturally. "Schedule a meeting with the team next Tuesday at 3."</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Confirm</h4>
+                    <p>Aria reads back the details, checks for conflicts, and asks for your go-ahead.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Booked</h4>
+                    <p>The event lands on your Google Calendar instantly. No forms, no clicks, no friction.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ CAPABILITIES ═══ -->
+        <section class="reveal">
+            <div class="section-label">Intelligence</div>
+            <div class="section-title">What Aria can do</div>
+            <div class="capabilities-grid">
+                <div class="capability-card">
+                    <div class="cap-icon violet">🧠</div>
+                    <h3>Natural Language Understanding</h3>
+                    <p>Powered by Claude — understands "next Tuesday afternoon", "in 3 days around noon", or "sometime this week"</p>
+                </div>
+                <div class="capability-card">
+                    <div class="cap-icon cyan">📅</div>
+                    <h3>Conflict Detection</h3>
+                    <p>Scans your calendar before booking. If there's a clash, Aria suggests alternatives instead of double-booking.</p>
+                </div>
+                <div class="capability-card">
+                    <div class="cap-icon emerald">⚡</div>
+                    <h3>Smart Slot Discovery</h3>
+                    <p>Ask "what's available?" and Aria finds 3 open time slots, filtered by morning, afternoon, or evening.</p>
+                </div>
+                <div class="capability-card">
+                    <div class="cap-icon amber">⏱️</div>
+                    <h3>Duration Intelligence</h3>
+                    <p>"Quick sync" → 15 min. "Project kickoff" → 60 min. Aria infers duration from the meeting title.</p>
+                </div>
+                <div class="capability-card">
+                    <div class="cap-icon rose">🌍</div>
+                    <h3>Timezone Awareness</h3>
+                    <p>Always confirms timezone before booking. Supports all US timezones with automatic date validation.</p>
+                </div>
+                <div class="capability-card">
+                    <div class="cap-icon indigo">🔄</div>
+                    <h3>Error Recovery</h3>
+                    <p>If something goes wrong, Aria retries silently. No crashes, no "please try again" loops — just graceful handling.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ ARCHITECTURE ═══ -->
+        <section class="reveal">
+            <div class="section-label">System Design</div>
+            <div class="section-title">Under the hood</div>
+            <div class="arch-container">
+                <div class="arch-flow">
+                    <div class="arch-node">
+                        <div class="node-icon">🎙️</div>
+                        <div class="node-label">Voice Input</div>
+                        <div class="node-tech">WebRTC</div>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node">
+                        <div class="node-icon">👂</div>
+                        <div class="node-label">Transcription</div>
+                        <div class="node-tech">ElevenLabs Scribe</div>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node">
+                        <div class="node-icon">🧠</div>
+                        <div class="node-label">Intelligence</div>
+                        <div class="node-tech">Claude Sonnet</div>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node">
+                        <div class="node-icon">🔧</div>
+                        <div class="node-label">Tool Server</div>
+                        <div class="node-tech">FastAPI</div>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node">
+                        <div class="node-icon">📅</div>
+                        <div class="node-label">Calendar</div>
+                        <div class="node-tech">Google API</div>
+                    </div>
+                </div>
+                <div class="arch-details">
+                    <div class="arch-detail">
+                        <div class="detail-label">Voice Synthesis</div>
+                        <div class="detail-value">ElevenLabs Sarah · Turbo v2.5</div>
+                    </div>
+                    <div class="arch-detail">
+                        <div class="detail-label">Orchestration</div>
+                        <div class="detail-value">VAPI · Server URL Tools</div>
+                    </div>
+                    <div class="arch-detail">
+                        <div class="detail-label">Deployment</div>
+                        <div class="detail-value">Railway · Docker Compose</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ LIVE FEED ═══ -->
+        <section class="reveal">
+            <div class="section-label">Live</div>
+            <div class="section-title">Conversation & bookings</div>
+            <div class="transcript-container">
+                <div class="transcript-feed" id="transcriptFeed">
+                    <div class="transcript-msg">
+                        <div class="msg-avatar aria">🤖</div>
+                        <div class="msg-content">
+                            <div class="msg-sender aria-name">Aria</div>
+                            <div class="msg-text">Hi there! I'm Aria, your scheduling assistant. I'd love to help you set up a meeting. What's your name?</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 32px; color: var(--text-dim); font-size: 0.8rem;">
+                        Start a call to see the live transcript
+                    </div>
+                </div>
+                <div class="bookings-sidebar">
+                    <h3>📋 Recent Bookings</h3>
+                    <div id="bookingsList">
+                        <div class="empty-bookings">No bookings yet — be the first!</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ FOOTER ═══ -->
+        <footer>
+            <p>
+                Built by Sai Teja &nbsp;·&nbsp;
+                <a href="/docs">API Docs</a> &nbsp;·&nbsp;
+                <a href="/health">Health</a> &nbsp;·&nbsp;
+                <a href="/api/bookings">Bookings API</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- ═══ Three.js Particle Background ═══ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Particle system
+        const particleCount = 1500;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        const palette = [
+            new THREE.Color(0x8b5cf6),
+            new THREE.Color(0x22d3ee),
+            new THREE.Color(0x6366f1),
+            new THREE.Color(0x34d399),
+        ];
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 20;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+
+            const color = palette[Math.floor(Math.random() * palette.length)];
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.03,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // Connecting lines
+        const lineGeometry = new THREE.BufferGeometry();
+        const linePositions = new Float32Array(200 * 6);
+        lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.04 });
+        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        scene.add(lines);
+
+        camera.position.z = 6;
+
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.0003;
+            particles.rotation.x += 0.0001;
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 0.5 - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+
+            // Update connecting lines
+            const pos = geometry.attributes.position.array;
+            let lineIndex = 0;
+            for (let i = 0; i < Math.min(particleCount, 100); i++) {
+                for (let j = i + 1; j < Math.min(particleCount, 100); j++) {
+                    const dx = pos[i*3] - pos[j*3];
+                    const dy = pos[i*3+1] - pos[j*3+1];
+                    const dz = pos[i*3+2] - pos[j*3+2];
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    if (dist < 1.5 && lineIndex < 200) {
+                        linePositions[lineIndex*6] = pos[i*3];
+                        linePositions[lineIndex*6+1] = pos[i*3+1];
+                        linePositions[lineIndex*6+2] = pos[i*3+2];
+                        linePositions[lineIndex*6+3] = pos[j*3];
+                        linePositions[lineIndex*6+4] = pos[j*3+1];
+                        linePositions[lineIndex*6+5] = pos[j*3+2];
+                        lineIndex++;
+                    }
+                }
+            }
+            lineGeometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+    <!-- ═══ Scroll Reveal ═══ -->
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+    <!-- ═══ VAPI Integration ═══ -->
+    <script type="module">
+        import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm";
+
+        const PUBLIC_KEY = "%%VAPI_PUBLIC_KEY%%";
+        const ASSISTANT_ID = "%%VAPI_ASSISTANT_ID%%";
+
+        let vapi = null;
+        let isCallActive = false;
+        let previousBookingCount = 0;
+
+        const dingSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+
+        if (PUBLIC_KEY && !PUBLIC_KEY.includes("%%")) {
+            vapi = new Vapi.default(PUBLIC_KEY);
+
+            vapi.on("call-start", () => {
+                isCallActive = true;
+                document.getElementById("callOrb").classList.add("active");
+                document.getElementById("orbLabel").textContent = "END";
+                document.getElementById("callStatus").textContent = "connected · speak naturally";
+                clearTranscript();
+            });
+
+            vapi.on("call-end", () => {
+                isCallActive = false;
+                document.getElementById("callOrb").classList.remove("active");
+                document.getElementById("orbLabel").textContent = "SPEAK";
+                document.getElementById("callStatus").textContent = "call ended · click to start again";
+                loadBookings();
+            });
+
+            vapi.on("message", (msg) => {
+                if (msg.type === "transcript" && msg.transcriptType === "final") {
+                    addTranscriptMsg(msg.role === "assistant" ? "aria" : "user", msg.transcript);
+                }
+                if (msg.type === "tool-calls") {
+                    const toolName = msg.toolCalls?.[0]?.function?.name || "tool";
+                    addToolMsg(toolName);
+                }
+            });
+
+            vapi.on("error", (e) => {
+                console.error("VAPI Error:", e);
+                document.getElementById("callStatus").textContent = "connection error · try again";
+            });
+        }
+
+        window.toggleCall = function() {
+            if (!vapi) {
+                document.getElementById("callStatus").textContent = "voice not configured · test via VAPI dashboard";
+                return;
+            }
+            if (isCallActive) {
+                vapi.stop();
+            } else {
+                document.getElementById("callStatus").textContent = "connecting...";
+                vapi.start(ASSISTANT_ID);
+            }
+        };
+
+        function clearTranscript() {
+            const feed = document.getElementById("transcriptFeed");
+            feed.innerHTML = '';
+            addTranscriptMsg("aria", "Hi there! I'm Aria, your scheduling assistant. I'd love to help you set up a meeting. What's your name?");
+        }
+
+        function addTranscriptMsg(role, text) {
+            const feed = document.getElementById("transcriptFeed");
+            const isAria = role === "aria";
+            const msg = document.createElement("div");
+            msg.className = "transcript-msg";
+            msg.innerHTML = `
+                <div class="msg-avatar ${isAria ? 'aria' : 'user'}">${isAria ? '🤖' : '🎙️'}</div>
+                <div class="msg-content">
+                    <div class="msg-sender ${isAria ? 'aria-name' : 'user-name'}">${isAria ? 'Aria' : 'You'}</div>
+                    <div class="msg-text">${text}</div>
+                </div>
+            `;
+            feed.appendChild(msg);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function addToolMsg(toolName) {
+            const feed = document.getElementById("transcriptFeed");
+            const msg = document.createElement("div");
+            msg.className = "transcript-msg";
+            msg.innerHTML = `
+                <div class="msg-avatar aria" style="background: rgba(52,211,153,0.15);">⚡</div>
+                <div class="msg-content">
+                    <div class="msg-tool">→ ${toolName.replace(/_/g, ' ')}</div>
+                </div>
+            `;
+            feed.appendChild(msg);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        async function loadBookings() {
+            try {
+                const res = await fetch("/api/bookings");
+                const data = await res.json();
+                const list = document.getElementById("bookingsList");
+                if (data.bookings && data.bookings.length > 0) {
+                    list.innerHTML = data.bookings.map(b => `
+                        <div class="booking-entry">
+                            <div class="b-name">${b.caller_name}</div>
+                            <div class="b-title">${b.meeting_title || 'Meeting'}</div>
+                            <div class="b-time">${b.scheduled_date} · ${b.scheduled_time}</div>
+                        </div>
+                    `).join("");
+
+                    if (previousBookingCount > 0 && data.bookings.length > previousBookingCount) {
+                        dingSound.play().catch(() => {});
+                    }
+                    previousBookingCount = data.bookings.length;
+                }
+            } catch(e) {
+                console.error("Failed to load bookings:", e);
+            }
+        }
+
+        loadBookings();
+        setInterval(loadBookings, 10000);
+    </script>
+</body>
+</html>

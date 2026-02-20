@@ -11,7 +11,6 @@ All tool endpoints follow the same contract:
 
 import datetime
 import traceback
-import asyncio
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -59,7 +58,7 @@ async def schedule_event(request: Request):
 
     # Check conflicts
     try:
-        conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
+        conflicts = calendar_service.check_conflicts(start_time, end_time, args.timezone)
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
             return tool_response(tc_id,
@@ -71,7 +70,7 @@ async def schedule_event(request: Request):
     event_title = args.title or f"Meeting with {args.name}"
     for attempt in range(2):
         try:
-            event = await asyncio.to_thread(calendar_service.create_event,
+            event = calendar_service.create_event(
                 summary=event_title,
                 start_time=start_time,
                 end_time=end_time,
@@ -82,7 +81,7 @@ async def schedule_event(request: Request):
 
             # Log to database
             try:
-                await asyncio.to_thread(log_booking,
+                log_booking(
                     caller_name=args.name,
                     meeting_title=event_title,
                     scheduled_date=start_time.strftime("%Y-%m-%d"),
@@ -129,7 +128,7 @@ async def check_availability(request: Request):
     try:
         start_time = parse_datetime(args.date, args.time)
         end_time = start_time + datetime.timedelta(minutes=args.duration_minutes)
-        conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
+        conflicts = calendar_service.check_conflicts(start_time, end_time)
 
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
@@ -179,7 +178,7 @@ async def available_slots(request: Request):
         search_start = base_date.replace(hour=start_h, minute=0)
         search_end = base_date.replace(hour=end_h, minute=0)
 
-        events = await asyncio.to_thread(calendar_service.check_conflicts, search_start, search_end)
+        events = calendar_service.check_conflicts(search_start, search_end)
 
         # Build busy time ranges
         busy_times = []
