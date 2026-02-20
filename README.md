@@ -152,10 +152,16 @@ This design makes the calendar layer secure (OAuth-based), reliable (auto token 
 ### 1. Voice agent confirmation
 ![Aria confirmation](assets/screenshot-frontend.png)
 
-### 2. Google Calendar event
+### 2. Conversation and Booking sections 
+![Conversation and Booking Section](assets/screenshot-conversation.png)
+
+### 3. Booking section
+![Booking Section](assets/screenshot-booking.png)
+
+### 4. Google Calendar event
 ![Google Calendar event](assets/screenshot-calendar.png)
 
-### 3. Booking log / server view (optional)
+### 5. Booking log / server view
 ![Booking log](assets/screenshot-logs.png)
 
 
