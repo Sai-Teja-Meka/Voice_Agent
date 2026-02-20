@@ -6,6 +6,7 @@ Handles: 'tomorrow', 'next Monday', 'February 20th', '3pm', 'noon', etc.
 """
 
 import datetime
+import parsedatetime
 from dateutil import parser as date_parser
 from dateutil import tz as dateutil_tz
 
@@ -15,55 +16,56 @@ from app.config import settings
 def parse_datetime(date_str: str, time_str: str, timezone: str = None) -> datetime.datetime:
     """
     Parse natural language date/time into a timezone-aware datetime.
-
-    Args:
-        date_str: Date in natural language or ISO format
-        time_str: Time in natural language or 24h format
-        timezone: IANA timezone string (defaults to settings.DEFAULT_TIMEZONE)
-
-    Returns:
-        Timezone-aware datetime object
-
-    Raises:
-        ValueError: If date/time cannot be parsed
+    Handles: 'tomorrow', 'in 3 days', 'next Tuesday', 'day after tomorrow',
+    'next week', 'after five days', 'March 5th', '3pm', 'noon', etc.
     """
+    
     tz_str = timezone or settings.DEFAULT_TIMEZONE
     target_tz = dateutil_tz.gettz(tz_str)
-    today = datetime.datetime.now(tz=target_tz)
-    date_lower = date_str.strip().lower()
-
-    # Handle common relative dates
-    if date_lower in ("today",):
-        base_date = today
-    elif date_lower in ("tomorrow",):
-        base_date = today + datetime.timedelta(days=1)
-    else:
+    now = datetime.datetime.now(tz=target_tz)
+    
+    cal = parsedatetime.Calendar()
+    
+    # Parse date using parsedatetime (handles all relative expressions)
+    date_result, date_status = cal.parseDT(date_str, sourceTime=now, tzinfo=target_tz)
+    if date_status == 0:
+        # parsedatetime couldn't parse it, try dateutil as fallback
         try:
-            base_date = date_parser.parse(date_str, fuzzy=True)
-            # Don't schedule in the past
-            if base_date.date() < today.date():
-                candidate = base_date.replace(year=today.year)
-                if candidate.date() < today.date():
-                    candidate = base_date.replace(year=today.year + 1)
-                base_date = candidate
+            date_result = date_parser.parse(date_str, fuzzy=True)
+            if date_result.date() < now.date():
+                candidate = date_result.replace(year=now.year)
+                if candidate.date() < now.date():
+                    candidate = date_result.replace(year=now.year + 1)
+                date_result = candidate
         except Exception:
-            base_date = today
-
-    # Parse time component
+            date_result = now
+    
+    # Parse time
     try:
-        time_part = date_parser.parse(time_str, fuzzy=True)
-        result = base_date.replace(
-            hour=time_part.hour, minute=time_part.minute, second=0, microsecond=0
-        )
+        time_result, time_status = cal.parseDT(time_str, sourceTime=now, tzinfo=target_tz)
+        if time_status > 0:
+            result = date_result.replace(
+                hour=time_result.hour, minute=time_result.minute, second=0, microsecond=0
+            )
+        else:
+            raise ValueError("parsedatetime failed")
     except Exception:
         try:
-            combined = f"{date_str} {time_str}"
-            result = date_parser.parse(combined, fuzzy=True)
-        except Exception as e:
-            raise ValueError(f"Could not parse: '{date_str} {time_str}'. Error: {e}")
-
+            time_part = date_parser.parse(time_str, fuzzy=True)
+            result = date_result.replace(
+                hour=time_part.hour, minute=time_part.minute, second=0, microsecond=0
+            )
+        except Exception:
+            try:
+                combined = f"{date_str} {time_str}"
+                result, status = cal.parseDT(combined, sourceTime=now, tzinfo=target_tz)
+                if status == 0:
+                    raise ValueError("Failed")
+            except Exception as e:
+                raise ValueError(f"Could not parse: '{date_str} {time_str}'. Error: {e}")
+    
     # Ensure timezone-aware
     if result.tzinfo is None:
         result = result.replace(tzinfo=target_tz)
-
+    
     return result
