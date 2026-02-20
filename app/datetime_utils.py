@@ -24,6 +24,37 @@ def parse_datetime(date_str: str, time_str: str, timezone: str = None) -> dateti
     target_tz = dateutil_tz.gettz(tz_str)
     now = datetime.datetime.now(tz=target_tz)
     
+    # Handle common relative phrases explicitly (parsedatetime gets some wrong)
+    date_lower = date_str.strip().lower()
+    explicit_date = None
+    
+    if date_lower in ("today",):
+        explicit_date = now
+    elif date_lower in ("tomorrow",):
+        explicit_date = now + datetime.timedelta(days=1)
+    elif date_lower in ("day after tomorrow", "the day after tomorrow"):
+        explicit_date = now + datetime.timedelta(days=2)
+    
+    # Check for "in X days" / "after X days" patterns
+    if not explicit_date:
+        import re
+        days_match = re.match(r'(?:in|after)\s+(\d+)\s+days?', date_lower)
+        if days_match:
+            explicit_date = now + datetime.timedelta(days=int(days_match.group(1)))
+    
+    if explicit_date:
+        # Parse just the time component
+        try:
+            time_part = date_parser.parse(time_str, fuzzy=True)
+            result = explicit_date.replace(
+                hour=time_part.hour, minute=time_part.minute, second=0, microsecond=0
+            )
+            if result.tzinfo is None:
+                result = result.replace(tzinfo=target_tz)
+            return result
+        except Exception:
+            pass  # Fall through to parsedatetime
+    
     cal = parsedatetime.Calendar()
     
     # Parse date using parsedatetime (handles all relative expressions)
