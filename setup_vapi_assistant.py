@@ -113,7 +113,7 @@ ASSISTANT_CONFIG = {
     # ── Brain: Claude Opus 4.6 ──
     "model": {
         "provider": "anthropic",
-        "model": "claude-sonnet-4-5-20250929",
+        "model": "claude-opus-4-6",
         "messages": [
             {
                 "role": "system",
@@ -217,21 +217,18 @@ ASSISTANT_CONFIG = {
     },
 
     # ── Voice: Sarah — ElevenLabs Turbo v2.5 ──
-    "voice": {
-        "provider": "11labs",
-        "voiceId": "EXAVITQu4vr4xnSDxMaL",
-        "model": "eleven_turbo_v2_5",
-        "stability": 0.55,
-        "similarityBoost": 0.75,
-        "optimizeStreamingLatency": 4,
-    },
-
-    # ── Transcriber: Scribe v1 ──
+        "voice": {
+    "provider": "11labs",
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",  # Sarah
+    "model": "eleven_turbo_v2_5",
+},
+    
+    # ── Transcriber ──
     "transcriber": {
-        "provider": "talkscribe",
-        "model": "scribe-v1",
-        "language": "en",
-    },
+  "provider": "11labs",
+  "model": "scribe_v1",
+  "language": "en",
+},
 
     # ── Call Settings ──
     "firstMessageMode": "assistant-speaks-first",
