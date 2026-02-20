@@ -1,9 +1,9 @@
 # Aria — Voice Scheduling Intelligence
 
-A real-time voice assistant that schedules Google Calendar events through natural conversation. Built in one day as a personal challenge (assessment allowed three).
+A real-time voice assistant that schedules Google Calendar events through natural conversation.
 
-> **Live:** [voiceagent-production-45c5.up.railway.app](https://voiceagent-production-45c5.up.railway.app)  
-> **Demo Video:** [Loom](YOUR_LOOM_LINK)
+> **Live:** [voiceagent-production-45c5.up.railway.app](https://voiceagent-production-45c5.up.railway.app/)  
+> **Demo Video:** [Loom](https://www.loom.com/share/501e045b6a844e06a37a9a4616699fa6)
 
 ---
 
