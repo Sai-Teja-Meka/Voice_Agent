@@ -27,6 +27,7 @@ import datetime
 import threading
 from typing import Optional
 
+
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
@@ -35,6 +36,7 @@ from googleapiclient.discovery import build
 from app.config import settings
 from app.database import get_user_credentials, save_user_credentials, update_user_token
 
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 # OAuth2 scopes
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CONNECT_SCOPES = ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/userinfo.email"]
