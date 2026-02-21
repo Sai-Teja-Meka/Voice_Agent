@@ -21,7 +21,6 @@ Architecture:
 
 import os
 from contextlib import asynccontextmanager
-import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,6 +40,12 @@ async def lifespan(app: FastAPI):
     print(f"  📅  Calendar: {'✅ Connected' if calendar_service.is_authenticated else '❌ Not connected'}")
     print(f"  🌐  Server: {settings.SERVER_URL}")
     print(f"  📊  Booking DB: {settings.DB_PATH}")
+    # Fix #4 — warn loudly if DB is on an ephemeral path (Heroku, tmp, etc.)
+    _db = settings.DB_PATH
+    if not _db.startswith("/app/data") and not _db.startswith("/var") and not _db.startswith("/mnt"):
+        print(f"  ⚠️  WARNING: DB_PATH '{_db}' may be on an ephemeral filesystem.")
+        print("  ⚠️  All connected users will lose auth on restart.")
+        print("  ⚠️  Set DB_PATH=/app/data/bookings.db and mount a persistent volume.")
     print("=" * 55)
     yield
     print("Shutting down Aria...")
@@ -92,21 +97,21 @@ async def direct_schedule(req: DirectScheduleRequest):
     except ValueError as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
-    conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
+    conflicts = calendar_service.check_conflicts(start_time, end_time)
     if conflicts:
         return JSONResponse(content={
             "status": "conflict",
             "conflicts": [{"summary": e.get("summary"), "start": e.get("start")} for e in conflicts],
         })
 
-    event = await asyncio.to_thread(calendar_service.create_event,
+    event = calendar_service.create_event(
         summary=req.title or f"Meeting with {req.name}",
         start_time=start_time,
         end_time=end_time,
         attendee_name=req.name,
     )
 
-    await asyncio.to_thread(log_booking,
+    log_booking(
         caller_name=req.name,
         meeting_title=req.title or f"Meeting with {req.name}",
         scheduled_date=start_time.strftime("%Y-%m-%d"),

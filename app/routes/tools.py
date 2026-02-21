@@ -1,30 +1,37 @@
 """
 Tool API Routes — /tools/api/v1/
 =================================
-VAPI server-url tool endpoints. These are the "hands" of Aria —
-when the LLM decides to take an action, VAPI calls these endpoints.
+Multi-tenant VAPI tool endpoints.
 
-All tool endpoints follow the same contract:
-  Input:  VAPI tool call payload
-  Output: VAPI tool result with natural language response
+When Aria collects the user's email, tool calls include it.
+We resolve the user's calendar credentials from the database.
+Falls back to the default calendar if no email is provided.
 """
 
+import asyncio
 import datetime
 import traceback
-import asyncio
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from dateutil import parser as date_parser
 
 from app.config import settings
-from app.models import ScheduleEventArgs, CheckAvailabilityArgs, AvailableSlotsArgs, DirectScheduleRequest
+from app.models import ScheduleEventArgs, CheckAvailabilityArgs, AvailableSlotsArgs
 from app.calendar_service import calendar_service
 from app.database import log_booking
 from app.datetime_utils import parse_datetime
 from app.vapi_utils import extract_tool_call, tool_response
 
 router = APIRouter(prefix="/tools/api/v1", tags=["tools"])
+
+
+def _get_calendar_client(email: str = None):
+    """Resolve a calendar client — user-specific or default."""
+    client = calendar_service.resolve_client(email)
+    if not client:
+        return None
+    return client
 
 
 @router.post("/schedule-event")
@@ -38,40 +45,45 @@ async def schedule_event(request: Request):
     raw_args = tc.get("function", {}).get("arguments", {})
     tc_id = tc.get("id", "")
 
-    # Validate with Pydantic
     try:
         args = ScheduleEventArgs(**raw_args)
     except Exception:
         return tool_response(tc_id, "I couldn't understand the scheduling details. Could you repeat that?")
 
-    # Auth check
-    if not calendar_service.is_authenticated:
+    # Resolve calendar client (user-specific or default)
+    client = _get_calendar_client(args.email)
+    if not client:
+        if args.email:
+            return tool_response(tc_id,
+                f"I don't have calendar access for {args.email}. They'll need to connect their calendar at the website first. Would you like me to use the default calendar instead?")
         return tool_response(tc_id,
-            "I'm sorry, the calendar isn't connected yet. Please ask the administrator to set it up.")
+            "No calendar is connected yet. Please ask the user to connect their calendar on the website.")
 
     # Parse datetime
     try:
         start_time = parse_datetime(args.date, args.time, args.timezone)
         end_time = start_time + datetime.timedelta(minutes=args.duration_minutes)
     except ValueError:
-        return tool_response(tc_id,
-            "I couldn't quite understand that date or time. Could you say it once more?")
+        return tool_response(tc_id, "I couldn't quite understand that date or time. Could you say it once more?")
 
-    # Check conflicts
+    # Check conflicts (wrapped to avoid blocking the event loop)
     try:
-        conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
+        conflicts = await asyncio.to_thread(
+            client.check_conflicts, start_time, end_time, args.timezone
+        )
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
             return tool_response(tc_id,
-                f"There's a conflict — you already have '{conflict_name}' at that time. Would you like to pick a different time?")
+                f"There's a conflict — there's already '{conflict_name}' at that time. Would you like to pick a different time?")
     except Exception as e:
         print(f"[Aria] Conflict check failed: {e}")
 
-    # Create event with retry
+    # Create event with retry (wrapped to avoid blocking the event loop)
     event_title = args.title or f"Meeting with {args.name}"
     for attempt in range(2):
         try:
-            event = await asyncio.to_thread(calendar_service.create_event,
+            event = await asyncio.to_thread(
+                client.create_event,
                 summary=event_title,
                 start_time=start_time,
                 end_time=end_time,
@@ -80,9 +92,8 @@ async def schedule_event(request: Request):
                 timezone=args.timezone,
             )
 
-            # Log to database
             try:
-                await asyncio.to_thread(log_booking,
+                log_booking(
                     caller_name=args.name,
                     meeting_title=event_title,
                     scheduled_date=start_time.strftime("%Y-%m-%d"),
@@ -91,13 +102,15 @@ async def schedule_event(request: Request):
                     timezone=args.timezone,
                     google_event_id=event["id"],
                     google_event_link=event["htmlLink"],
+                    user_email=args.email,
                 )
             except Exception as log_err:
                 print(f"[Aria] Booking log failed: {log_err}")
 
             formatted_date = start_time.strftime("%A, %B %d at %I:%M %p")
+            calendar_note = f" on {args.email}'s calendar" if args.email else " on the calendar"
             return tool_response(tc_id,
-                f"Done! '{event_title}' is confirmed for {formatted_date}. It's on your Google Calendar. Is there anything else I can help with?")
+                f"Done! '{event_title}' is confirmed for {formatted_date}{calendar_note}. Is there anything else I can help with?")
 
         except Exception as e:
             print(f"[Aria] Event creation attempt {attempt + 1} failed: {e}")
@@ -123,13 +136,14 @@ async def check_availability(request: Request):
     except Exception:
         return tool_response(tc_id, "I couldn't understand that. Could you try again?")
 
-    if not calendar_service.is_authenticated:
-        return tool_response(tc_id, "Calendar not connected.")
+    client = _get_calendar_client(args.email)
+    if not client:
+        return tool_response(tc_id, "No calendar connected for this user.")
 
     try:
         start_time = parse_datetime(args.date, args.time)
         end_time = start_time + datetime.timedelta(minutes=args.duration_minutes)
-        conflicts = await asyncio.to_thread(calendar_service.check_conflicts, start_time, end_time)
+        conflicts = await asyncio.to_thread(client.check_conflicts, start_time, end_time)
 
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
@@ -163,8 +177,9 @@ async def available_slots(request: Request):
     except Exception:
         return tool_response(tc_id, "I couldn't understand that. Could you try again?")
 
-    if not calendar_service.is_authenticated:
-        return tool_response(tc_id, "Calendar not connected.")
+    client = _get_calendar_client(args.email)
+    if not client:
+        return tool_response(tc_id, "No calendar connected for this user.")
 
     try:
         base_date = parse_datetime(args.date, "9:00 AM")
@@ -179,9 +194,8 @@ async def available_slots(request: Request):
         search_start = base_date.replace(hour=start_h, minute=0)
         search_end = base_date.replace(hour=end_h, minute=0)
 
-        events = await asyncio.to_thread(calendar_service.check_conflicts, search_start, search_end)
+        events = await asyncio.to_thread(client.check_conflicts, search_start, search_end)
 
-        # Build busy time ranges
         busy_times = []
         for evt in events:
             start = evt.get("start", {})
@@ -193,9 +207,8 @@ async def available_slots(request: Request):
                 ))
             elif "date" in start:
                 return tool_response(tc_id,
-                    f"It looks like you have an all-day event on {args.date}. Would you like to try a different day?")
+                    f"It looks like there's an all-day event on {args.date}. Would you like to try a different day?")
 
-        # Find gaps
         available = []
         current = search_start
         while current + datetime.timedelta(minutes=30) <= search_end and len(available) < 3:
@@ -216,7 +229,7 @@ async def available_slots(request: Request):
             slots_str = ", ".join(available[:-1]) + f", or {available[-1]}" if len(available) > 1 else available[0]
             formatted_date = base_date.strftime("%A, %B %d")
             return tool_response(tc_id,
-                f"On {formatted_date}, I have these slots open: {slots_str}. Which works best for you?")
+                f"On {formatted_date}, these slots are open: {slots_str}. Which works best?")
         else:
             return tool_response(tc_id,
                 f"It looks like {args.date} is pretty packed. Would you like to try a different day?")
