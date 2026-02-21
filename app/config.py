@@ -30,9 +30,7 @@ class Settings:
     VAPI_ASSISTANT_ID: str = os.getenv("VAPI_ASSISTANT_ID", "")
 
     # Database
-    # Fix #4 — default to /app/data/bookings.db so the Docker named volume
-    # (mounted at /app/data) is used. Override DB_PATH in .env if needed.
-    DB_PATH: str = os.getenv("DB_PATH", "/app/data/bookings.db")
+    DB_PATH: str = os.getenv("DB_PATH", "bookings.db")
 
     # Defaults
     DEFAULT_TIMEZONE: str = os.getenv("DEFAULT_TIMEZONE", "America/New_York")
