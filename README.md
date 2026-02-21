@@ -29,7 +29,7 @@
 2. Click the glowing orb to start Aria.
 3. Speak your name, desired date/time, and an optional title.
 4. Wait for Aria to confirm, then approve the booking.
-5. Check your connected Google Calendar for the newly created event.(For this demo, the calendar is a public shared demo calendar created for the demo purpose which you can access below to see the created events)
+5. Check your connected Google Calendar for the newly created event. (**For this demo, the calendar is a public shared demo calendar created for the demo purpose which you can access below 👇 to see the created events**)
 
 ---
 
