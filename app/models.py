@@ -21,6 +21,7 @@ class ScheduleEventArgs(BaseModel):
     title: Optional[str] = Field(None, description="Meeting title")
     duration_minutes: int = Field(30, ge=5, le=480, description="Duration in minutes")
     timezone: str = Field("America/New_York", description="IANA timezone")
+    email: Optional[str] = Field(None, description="User's email for multi-tenant calendar lookup")
 
 
 class CheckAvailabilityArgs(BaseModel):
@@ -28,6 +29,7 @@ class CheckAvailabilityArgs(BaseModel):
     date: str = Field(..., description="Date to check")
     time: str = Field(..., description="Time to check")
     duration_minutes: int = Field(30, ge=5, le=480, description="Duration in minutes")
+    email: Optional[str] = Field(None, description="User's email for multi-tenant calendar lookup")
 
 
 class AvailableSlotsArgs(BaseModel):
@@ -38,6 +40,7 @@ class AvailableSlotsArgs(BaseModel):
         description="Preferred time: 'morning', 'afternoon', 'evening', or 'any'",
         pattern="^(morning|afternoon|evening|any)$",
     )
+    email: Optional[str] = Field(None, description="User's email for multi-tenant calendar lookup")
 
 
 # ──────────────────────────────────────────────
