@@ -14,8 +14,10 @@ from typing import Optional
 from app.config import settings
 
 
+import os
+
 def _get_conn():
-    """Get a database connection with row factory."""
+    os.makedirs(os.path.dirname(settings.DB_PATH), exist_ok=True)
     conn = sqlite3.connect(settings.DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn

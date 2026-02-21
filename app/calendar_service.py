@@ -36,7 +36,8 @@ from app.config import settings
 from app.database import get_user_credentials, save_user_credentials, update_user_token
 
 # OAuth2 scopes
-SCOPES = ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/userinfo.email"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
+CONNECT_SCOPES = ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/userinfo.email"]
 
 # OAuth client config
 CLIENT_CONFIG = {
