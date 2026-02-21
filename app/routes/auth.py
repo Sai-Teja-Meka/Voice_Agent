@@ -35,7 +35,7 @@ async def connect_calendar(response: Response):
         max_age=600,          # Matches _STATE_TTL_SECONDS in calendar_service
         httponly=True,
         samesite="lax",
-        secure=False,         # Set to True in production behind HTTPS
+        secure=True,        # Set to True in production behind HTTPS
     )
     return redirect
 

@@ -267,7 +267,7 @@ class GoogleCalendarService:
             (auth_url, state_token)
         """
         state = _issue_state_token()
-        flow = Flow.from_client_config(CLIENT_CONFIG, scopes=SCOPES)
+        flow = Flow.from_client_config(CLIENT_CONFIG, scopes=CONNECT_SCOPES)
         flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
         auth_url, _ = flow.authorization_url(
             access_type="offline",
@@ -288,7 +288,7 @@ class GoogleCalendarService:
         immutable after startup.
         """
         try:
-            flow = Flow.from_client_config(CLIENT_CONFIG, scopes=SCOPES)
+            flow = Flow.from_client_config(CLIENT_CONFIG, scopes=CONNECT_SCOPES)
             flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
             flow.fetch_token(code=authorization_code)
             creds = flow.credentials
