@@ -33,6 +33,16 @@
 
 ---
 
+## 📅 Live Calendar Verification
+
+Events booked through Aria appear in real time on our shared demo calendar:
+
+👉 **[View Live Calendar](https://calendar.google.com/calendar/embed?src=aria.demo.agent%40gmail.com&ctz=America%2FNew_York)**
+
+After speaking with Aria, open this link to see your event confirmed.
+
+---
+
 ## 💬 What Aria Does
 
 You click a button, speak naturally, and Aria books a real Google Calendar event. No forms, no typing, no friction.
