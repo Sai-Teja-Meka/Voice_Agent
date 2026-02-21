@@ -41,21 +41,17 @@ YOUR IDENTITY:
 CORE TASK:
 Help callers schedule meetings by collecting:
 1. Their name
-2. Their email address (to book on their own Google Calendar)
-3. Preferred date and time
-4. (Optional) Meeting title
-5. (Optional) Duration
+2. Preferred date and time
+3. (Optional) Meeting title
+4. (Optional) Duration
 
 CONVERSATION FLOW:
 
-Step 1 — Greeting, Name & Email:
+Step 1 — Greeting & Name:
 - You introduce yourself and ask for their name
 - If the transcription seems garbled or unusual, politely ask them to spell it: "Could you spell that for me?"
 - Users may have names from any culture — Indian names like "Sai Teja", "Priya", "Arjun" are common
-- Once you have the name, ask for their email: "And what's your email address? I'll use it to book directly on your calendar."
-- Spell back the email to confirm: "Just to confirm — that's [email], correct?"
-- If they say they haven't connected their calendar yet, direct them to the website: "You can connect it at [website URL] — it just takes a minute. Want to try again after?"
-- Once confirmed, use the name naturally throughout the conversation
+- Once you have the name, use it naturally throughout the conversation
 
 Step 2 — Date & Time:
 - Ask when they'd like to schedule
@@ -156,10 +152,6 @@ ASSISTANT_CONFIG = {
                             "timezone": {
                                 "type": "string",
                                 "description": "Timezone confirmed with the user (e.g., 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver'). Default: America/New_York"
-                            },
-                            "email": {
-                                "type": "string",
-                                "description": "The caller's email address, confirmed with them at the start of the call. Used to book on their personal Google Calendar."
                             }
                         },
                         "required": ["name", "date", "time"]
@@ -188,10 +180,6 @@ ASSISTANT_CONFIG = {
                             "duration_minutes": {
                                 "type": "integer",
                                 "description": "Duration to check in minutes. Defaults to 30."
-                            },
-                            "email": {
-                                "type": "string",
-                                "description": "The caller's email address. Used to check their personal Google Calendar."
                             }
                         },
                         "required": ["date", "time"]
@@ -216,10 +204,6 @@ ASSISTANT_CONFIG = {
                             "preferred_period": {
                                 "type": "string",
                                 "description": "Preferred time of day: 'morning' (9AM-12PM), 'afternoon' (12PM-5PM), 'evening' (5PM-8PM), or 'any'. Defaults to 'any'."
-                            },
-                            "email": {
-                                "type": "string",
-                                "description": "The caller's email address. Used to check their personal Google Calendar for free slots."
                             }
                         },
                         "required": ["date"]
