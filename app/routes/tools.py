@@ -8,6 +8,7 @@ We resolve the user's calendar credentials from the database.
 Falls back to the default calendar if no email is provided.
 """
 
+import asyncio
 import datetime
 import traceback
 
@@ -65,9 +66,11 @@ async def schedule_event(request: Request):
     except ValueError:
         return tool_response(tc_id, "I couldn't quite understand that date or time. Could you say it once more?")
 
-    # Check conflicts
+    # Check conflicts (wrapped to avoid blocking the event loop)
     try:
-        conflicts = client.check_conflicts(start_time, end_time, args.timezone)
+        conflicts = await asyncio.to_thread(
+            client.check_conflicts, start_time, end_time, args.timezone
+        )
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
             return tool_response(tc_id,
@@ -75,11 +78,12 @@ async def schedule_event(request: Request):
     except Exception as e:
         print(f"[Aria] Conflict check failed: {e}")
 
-    # Create event with retry
+    # Create event with retry (wrapped to avoid blocking the event loop)
     event_title = args.title or f"Meeting with {args.name}"
     for attempt in range(2):
         try:
-            event = client.create_event(
+            event = await asyncio.to_thread(
+                client.create_event,
                 summary=event_title,
                 start_time=start_time,
                 end_time=end_time,
@@ -139,7 +143,7 @@ async def check_availability(request: Request):
     try:
         start_time = parse_datetime(args.date, args.time)
         end_time = start_time + datetime.timedelta(minutes=args.duration_minutes)
-        conflicts = client.check_conflicts(start_time, end_time)
+        conflicts = await asyncio.to_thread(client.check_conflicts, start_time, end_time)
 
         if conflicts:
             conflict_name = conflicts[0].get("summary", "another event")
@@ -190,7 +194,7 @@ async def available_slots(request: Request):
         search_start = base_date.replace(hour=start_h, minute=0)
         search_end = base_date.replace(hour=end_h, minute=0)
 
-        events = client.check_conflicts(search_start, search_end)
+        events = await asyncio.to_thread(client.check_conflicts, search_start, search_end)
 
         busy_times = []
         for evt in events:

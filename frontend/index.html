@@ -44,139 +44,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ─── Gradient Mesh Background ─── */
-        #gradient-mesh {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .mesh-blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
-            mix-blend-mode: screen;
-        }
-
-        .mesh-blob-1 {
-            width: 60vw;
-            height: 60vw;
-            background: radial-gradient(circle, #8b5cf6, transparent 70%);
-            top: -20%;
-            left: -10%;
-            animation: meshMove1 18s ease-in-out infinite alternate;
-        }
-
-        .mesh-blob-2 {
-            width: 50vw;
-            height: 50vw;
-            background: radial-gradient(circle, #22d3ee, transparent 70%);
-            bottom: -15%;
-            right: -10%;
-            animation: meshMove2 22s ease-in-out infinite alternate;
-        }
-
-        .mesh-blob-3 {
-            width: 40vw;
-            height: 40vw;
-            background: radial-gradient(circle, #34d399, transparent 70%);
-            top: 40%;
-            left: 40%;
-            animation: meshMove3 15s ease-in-out infinite alternate;
-        }
-
-        .mesh-blob-4 {
-            width: 35vw;
-            height: 35vw;
-            background: radial-gradient(circle, #6366f1, transparent 70%);
-            top: 10%;
-            right: 5%;
-            animation: meshMove4 20s ease-in-out infinite alternate;
-        }
-
-        @keyframes meshMove1 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            100% {
-                transform: translate(8vw, 12vh) scale(1.15);
-            }
-        }
-
-        @keyframes meshMove2 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            100% {
-                transform: translate(-10vw, -8vh) scale(1.2);
-            }
-        }
-
-        @keyframes meshMove3 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            100% {
-                transform: translate(-6vw, 10vh) scale(0.85);
-            }
-        }
-
-        @keyframes meshMove4 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            100% {
-                transform: translate(5vw, -12vh) scale(1.1);
-            }
-        }
-
-        /* ─── Noise/Grain Overlay ─── */
-        #noise-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 999;
-            pointer-events: none;
-            opacity: 0.032;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            background-size: 180px 180px;
-            animation: noiseShift 0.08s steps(1) infinite;
-        }
-
-        @keyframes noiseShift {
-            0% {
-                background-position: 0 0;
-            }
-
-            25% {
-                background-position: -15px -20px;
-            }
-
-            50% {
-                background-position: 20px 10px;
-            }
-
-            75% {
-                background-position: -10px 25px;
-            }
-
-            100% {
-                background-position: 15px -15px;
-            }
-        }
-
         /* ─── Three.js Canvas ─── */
         #bg-canvas {
             position: fixed;
@@ -184,14 +51,14 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 1;
+            z-index: 0;
             pointer-events: none;
         }
 
         /* ─── Main Container ─── */
         .main {
             position: relative;
-            z-index: 2;
+            z-index: 1;
         }
 
         /* ─── Hero Section ─── */
@@ -884,150 +751,7 @@
             color: var(--accent-violet);
         }
 
-        /* ─── Tech Stack Orbit Badges ─── */
-        .tech-orbit {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .orbit-ring-sm {
-            position: absolute;
-            width: 460px;
-            height: 460px;
-            top: -230px;
-            left: -230px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            animation: orbitSpin 30s linear infinite;
-        }
-
-        .orbit-ring-sm .tech-badge {
-            position: absolute;
-            animation: orbitSpinReverse 30s linear infinite;
-        }
-
-        @keyframes orbitSpin {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes orbitSpinReverse {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(-360deg);
-            }
-        }
-
-        .tech-badge {
-            padding: 5px 12px;
-            background: rgba(8, 8, 18, 0.88);
-            border: 1px solid rgba(139, 92, 246, 0.28);
-            border-radius: 100px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            backdrop-filter: blur(10px);
-            display: inline-block;
-        }
-
-        /* Place badges at 4 cardinal points on 460px-diameter ring (radius=230) */
-        .badge-top {
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .badge-right {
-            top: 50%;
-            left: calc(100% - 8px);
-            transform: translateY(-50%);
-        }
-
-        .badge-bottom {
-            top: calc(100% - 12px);
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .badge-left {
-            top: 50%;
-            right: calc(100% - 8px);
-            transform: translateY(-50%);
-        }
-
-        /* ─── Typing Effect ─── */
-        .typing-cursor {
-            display: inline-block;
-            width: 2px;
-            height: 1.1em;
-            background: var(--accent-violet);
-            margin-left: 2px;
-            vertical-align: middle;
-            animation: cursorBlink 0.9s steps(1) infinite;
-        }
-
-        @keyframes cursorBlink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0;
-            }
-        }
-
-        /* ─── Audio Visualizer Canvas on Orb ─── */
-        #orbVisualizer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            z-index: 3;
-        }
-
-        #orbVisualizer.active {
-            opacity: 1;
-        }
-
-        /* ─── Particle Burst Canvas ─── */
-        #burst-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 998;
-        }
-
-        /* ─── Scroll parallax wrapper ─── */
-        #bg-canvas {
-            will-change: transform;
-        }
-
-        /* ─── Reveal ─── */
+        /* ─── Animations ─── */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -1090,23 +814,46 @@
                 align-items: center;
             }
         }
+
+        .connect-cta {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connect-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 11px 22px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            border-radius: 50px;
+            color: #22c55e;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .connect-btn:hover {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .connect-hint {
+            color: #6b7280;
+            font-size: 0.78rem;
+            margin: 0;
+        }
     </style>
 </head>
 
 <body>
     <canvas id="bg-canvas"></canvas>
-    <canvas id="burst-canvas"></canvas>
-
-    <!-- Gradient mesh background -->
-    <div id="gradient-mesh">
-        <div class="mesh-blob mesh-blob-1"></div>
-        <div class="mesh-blob mesh-blob-2"></div>
-        <div class="mesh-blob mesh-blob-3"></div>
-        <div class="mesh-blob mesh-blob-4"></div>
-    </div>
-
-    <!-- Noise grain overlay -->
-    <div id="noise-overlay"></div>
 
     <div class="main">
         <!-- ═══ HERO ═══ -->
@@ -1119,27 +866,30 @@
                 <span class="thin">Meet</span><br>
                 <span class="gradient-text">Aria</span>
             </h1>
-            <p class="hero-sub" id="heroSub"></p>
+            <p class="hero-sub">
+                Your AI scheduling assistant that listens, understands, and books —
+                all through natural voice conversation.
+            </p>
             <div class="orb-wrapper">
-                <!-- Tech orbit badges -->
-                <div class="tech-orbit">
-                    <div class="orbit-ring-sm">
-                        <span class="tech-badge badge-top">✦ Claude</span>
-                        <span class="tech-badge badge-right">✦ ElevenLabs</span>
-                        <span class="tech-badge badge-bottom">✦ FastAPI</span>
-                        <span class="tech-badge badge-left">✦ Google Calendar</span>
-                    </div>
-                </div>
                 <div class="orb" id="callOrb" onclick="toggleCall()">
                     <span class="orb-label" id="orbLabel">SPEAK</span>
                 </div>
-                <!-- Audio visualizer overlay -->
-                <canvas class="orb-visualizer" id="orbVisualizer" width="200" height="200"></canvas>
                 <div class="orb-ring orb-ring-1"></div>
                 <div class="orb-ring orb-ring-2"></div>
                 <div class="orb-ring orb-ring-3"></div>
             </div>
             <div class="call-status-text" id="callStatus">Click the orb to start a conversation</div>
+            <div class="connect-cta">
+                <a href="/auth/connect" class="connect-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:7px;flex-shrink:0">
+                        <circle cx="8" cy="8" r="7" stroke="#22c55e" stroke-width="1.5" />
+                        <path d="M5 8l2 2 4-4" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Connect My Google Calendar
+                </a>
+                <p class="connect-hint">First time? Connect your calendar so Aria can book events directly on it.</p>
+            </div>
         </section>
 
         <!-- ═══ HOW IT WORKS ═══ -->
@@ -1403,184 +1153,6 @@
         });
     </script>
 
-    <!-- ═══ Enhanced Features ═══ -->
-    <script>
-        // ── 1. TYPING EFFECT ON HERO SUBTITLE ──────────────────────────────────
-        (function () {
-            const text = "Your AI scheduling assistant that listens, understands, and books — all through natural voice conversation.";
-            const el = document.getElementById('heroSub');
-            const cursor = document.createElement('span');
-            cursor.className = 'typing-cursor';
-            let i = 0;
-            const speed = 28;
-
-            function type() {
-                if (i < text.length) {
-                    el.textContent = text.slice(0, ++i);
-                    el.appendChild(cursor);
-                    setTimeout(type, speed + Math.random() * 20);
-                } else {
-                    // Fade out cursor once typing is done
-                    cursor.style.transition = 'opacity 0.8s ease';
-                    cursor.style.opacity = '0';
-                    setTimeout(() => cursor.remove(), 800);
-                }
-            }
-
-            // Start after a slight delay so page loads first
-            setTimeout(type, 900);
-        })();
-
-        // ── 2. SCROLL-DRIVEN PARALLAX ──────────────────────────────────────────
-        (function () {
-            const canvas = document.getElementById('bg-canvas');
-            window.addEventListener('scroll', () => {
-                const scrollY = window.scrollY;
-                canvas.style.transform = `translateY(${scrollY * 0.25}px)`;
-            }, { passive: true });
-        })();
-
-        // ── 3. PARTICLE BURST ON NEW BOOKING ──────────────────────────────────
-        const burstCanvas = document.getElementById('burst-canvas');
-        const burstCtx = burstCanvas.getContext('2d');
-        burstCanvas.width = window.innerWidth;
-        burstCanvas.height = window.innerHeight;
-        window.addEventListener('resize', () => {
-            burstCanvas.width = window.innerWidth;
-            burstCanvas.height = window.innerHeight;
-        });
-
-        let burstParticles = [];
-
-        function triggerBurst(x, y) {
-            const colors = ['#8b5cf6', '#22d3ee', '#34d399', '#6366f1', '#f43f5e', '#f59e0b'];
-            for (let i = 0; i < 60; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 2 + Math.random() * 6;
-                burstParticles.push({
-                    x, y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1,
-                    decay: 0.015 + Math.random() * 0.02,
-                    size: 2 + Math.random() * 4,
-                    color: colors[Math.floor(Math.random() * colors.length)]
-                });
-            }
-        }
-
-        function animateBurst() {
-            requestAnimationFrame(animateBurst);
-            if (burstParticles.length === 0) {
-                burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
-                return;
-            }
-            burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
-            burstParticles = burstParticles.filter(p => p.life > 0);
-            for (const p of burstParticles) {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.12; // gravity
-                p.life -= p.decay;
-                burstCtx.save();
-                burstCtx.globalAlpha = Math.max(0, p.life);
-                burstCtx.fillStyle = p.color;
-                burstCtx.beginPath();
-                burstCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                burstCtx.fill();
-                burstCtx.restore();
-            }
-        }
-        animateBurst();
-
-        // Expose burst for booking trigger
-        window.triggerBookingBurst = function () {
-            const sidebar = document.querySelector('.bookings-sidebar');
-            if (sidebar) {
-                const rect = sidebar.getBoundingClientRect();
-                triggerBurst(rect.left + rect.width / 2, rect.top + 60);
-            }
-        };
-
-        // ── 4. AUDIO VISUALIZER ON ORB ────────────────────────────────────────
-        const vizCanvas = document.getElementById('orbVisualizer');
-        const vizCtx = vizCanvas.getContext('2d');
-        let audioCtx, analyser, sourceNode, dataArray;
-        let vizActive = false;
-        let fakeAmplitude = 0;
-
-        function drawVisualizer() {
-            if (!vizActive) return;
-            requestAnimationFrame(drawVisualizer);
-
-            vizCtx.clearRect(0, 0, 200, 200);
-            const cx = 100, cy = 100;
-            const baseRadius = 90;
-            const bars = 48;
-
-            let amplitudeData;
-            if (analyser && dataArray) {
-                analyser.getByteFrequencyData(dataArray);
-                amplitudeData = dataArray;
-            } else {
-                // Fake animation when no mic access
-                fakeAmplitude += 0.08;
-                amplitudeData = new Uint8Array(bars).fill(0).map((_, i) =>
-                    80 + Math.sin(fakeAmplitude + i * 0.4) * 60 + Math.random() * 30
-                );
-            }
-
-            for (let i = 0; i < bars; i++) {
-                const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
-                const dataIndex = Math.floor((i / bars) * (amplitudeData.length / 2));
-                const amp = (amplitudeData[dataIndex] || 100) / 255;
-                const barLen = 8 + amp * 28;
-
-                const x1 = cx + Math.cos(angle) * baseRadius;
-                const y1 = cy + Math.sin(angle) * baseRadius;
-                const x2 = cx + Math.cos(angle) * (baseRadius + barLen);
-                const y2 = cy + Math.sin(angle) * (baseRadius + barLen);
-
-                const grad = vizCtx.createLinearGradient(x1, y1, x2, y2);
-                grad.addColorStop(0, `rgba(244, 63, 94, ${0.3 + amp * 0.5})`);
-                grad.addColorStop(1, `rgba(139, 92, 246, ${0.1 + amp * 0.3})`);
-
-                vizCtx.beginPath();
-                vizCtx.moveTo(x1, y1);
-                vizCtx.lineTo(x2, y2);
-                vizCtx.strokeStyle = grad;
-                vizCtx.lineWidth = 2.5;
-                vizCtx.lineCap = 'round';
-                vizCtx.stroke();
-            }
-        }
-
-        window.startVisualizer = async function () {
-            vizActive = true;
-            vizCanvas.classList.add('active');
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 256;
-                    dataArray = new Uint8Array(analyser.frequencyBinCount);
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    sourceNode = audioCtx.createMediaStreamSource(stream);
-                    sourceNode.connect(analyser);
-                }
-            } catch (e) {
-                console.log('Mic access denied, using simulated visualizer');
-            }
-            drawVisualizer();
-        };
-
-        window.stopVisualizer = function () {
-            vizActive = false;
-            vizCanvas.classList.remove('active');
-            vizCtx.clearRect(0, 0, 200, 200);
-        };
-    </script>
-
     <!-- ═══ Scroll Reveal ═══ -->
     <script>
         const observer = new IntersectionObserver((entries) => {
@@ -1616,7 +1188,6 @@
                 document.getElementById("orbLabel").textContent = "END";
                 document.getElementById("callStatus").textContent = "connected · speak naturally";
                 clearTranscript();
-                if (window.startVisualizer) window.startVisualizer();
             });
 
             vapi.on("call-end", () => {
@@ -1624,7 +1195,6 @@
                 document.getElementById("callOrb").classList.remove("active");
                 document.getElementById("orbLabel").textContent = "SPEAK";
                 document.getElementById("callStatus").textContent = "call ended · click to start again";
-                if (window.stopVisualizer) window.stopVisualizer();
                 loadBookings();
             });
 
@@ -1709,7 +1279,6 @@
 
                     if (previousBookingCount > 0 && data.bookings.length > previousBookingCount) {
                         dingSound.play().catch(() => { });
-                        if (window.triggerBookingBurst) window.triggerBookingBurst();
                     }
                     previousBookingCount = data.bookings.length;
                 }
